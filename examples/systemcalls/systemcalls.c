@@ -1,4 +1,13 @@
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <stdarg.h>
+#include <fcntl.h>
 #include "systemcalls.h"
+
+#define STDOUT_FD (1)
 
 /**
  * @param cmd the command to execute with system()
@@ -16,6 +25,10 @@ bool do_system(const char *cmd)
  *   and return a boolean true if the system() call completed with success
  *   or false() if it returned a failure
 */
+    int ret_val = system(cmd);
+    if (ret_val < 0) {
+        return false;
+    }
 
     return true;
 }
@@ -43,6 +56,7 @@ bool do_exec(int count, ...)
     for(i=0; i<count; i++)
     {
         command[i] = va_arg(args, char *);
+        printf("__________%s__________\n", command[i]);
     }
     command[count] = NULL;
     // this line is to avoid a compile warning before your implementation is complete
@@ -58,6 +72,39 @@ bool do_exec(int count, ...)
  *   as second argument to the execv() command.
  *
 */
+    pid_t pid, wait_pid;
+    int ret_val;
+
+    // Verify every command, if it not a flag
+    for (i = 0; i < count; i ++) {
+        if (command[i][0] != '-' && command[i][0] != '/') {
+            printf("ERROR: the command's path should be a absolute path: [%s]\n", command[i]);
+            return false;
+        }
+    }
+
+    pid = fork();
+    
+    if (pid == 0) {
+        printf("I'm a child process, executing the command %s....\n", command[0]);
+        ret_val = execv(command[0], &command[0]);
+        if (ret_val == -1) {
+            printf("execv failed, exiting with error\n");
+            exit(-1);
+        }
+    } else if (pid < 0) {
+        printf("ERROR: fork failed with pid = %d\n", pid);
+        return false;
+    } else {
+        printf("I'm a dad process, waiting for the child process finished...\n");
+        wait_pid = wait(&ret_val);
+        if (wait_pid != pid) {
+            printf("Wait failed with wait_pid = %d\n", wait_pid);
+            return false;
+        } else {
+            printf("Child executed the command successfully\n");
+        }
+    }
 
     va_end(args);
 
@@ -78,6 +125,7 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
     for(i=0; i<count; i++)
     {
         command[i] = va_arg(args, char *);
+        printf("__________%s__________\n", command[i]);
     }
     command[count] = NULL;
     // this line is to avoid a compile warning before your implementation is complete
@@ -92,8 +140,44 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *   The rest of the behaviour is same as do_exec()
  *
 */
+    pid_t pid, wait_pid;
+    int ret_val;
+    int fd;
+
+    fd = open(outputfile, O_RDWR);
+    if (fd == -1) {
+        printf("ERROR: Open %s failed\n", outputfile);
+        return false;
+    }
+
+    pid = fork();
+    
+    if (pid == 0) {
+        printf("I'm a child process, executing the command %s....\n", command[0]);
+        dup2(fd, STDOUT_FD);
+        close(fd);
+        ret_val = execv(command[0], &command[0]);
+        if (ret_val == -1) {
+            printf("execv failed, exiting with error\n");
+            exit(-1);
+        }
+    } else if (pid < 0) {
+        printf("ERROR: fork failed with pid = %d\n", pid);
+        return false;
+    } else {
+        printf("I'm a dad process, waiting for the child process finished...\n");
+        wait_pid = wait(&ret_val);
+        if (wait_pid != pid) {
+            printf("Wait failed with wait_pid = %d\n", wait_pid);
+            return false;
+        } else {
+            printf("Child executed the command successfully\n");
+        }
+    }
 
     va_end(args);
 
-    return true;
+    
+
+    return ret_val;
 }
