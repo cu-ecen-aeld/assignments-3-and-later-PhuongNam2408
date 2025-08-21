@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Get the runtime args:
 # 1st args: path to a directory <filesdirs>
@@ -31,11 +31,11 @@ fi
 SEARCHSTR=$2
 
 # Get all files placed in FILESDIR
-FILE_LIST_ARR=($( ls $FILESDIR ))
-echo "All files and sub dirs in $FILESDIR: ${FILE_LIST_ARR[@]}"
+FILE_LIST_ARR=$( ls $FILESDIR )
+echo "All files and sub dirs in $FILESDIR: ${FILE_LIST_ARR}"
 
 # Loop through all files, grep the SEARCHSTR, count the nuber of lines that contains SEARCHSTR
-for FILE in ${FILE_LIST_ARR[@]}
+for FILE in ${FILE_LIST_ARR}
   do 
     if [ -d $FILE ] ; then
       echo "$FILE is a directory, ignoring..."
@@ -46,4 +46,6 @@ for FILE in ${FILE_LIST_ARR[@]}
     fi
 done
 
-echo "The number of files are ${#FILE_LIST_ARR[@]} and the number of matching lines are $MATCHING_LINE"
+FILE_LITS_NUMBER=$( echo "$FILE_LIST_ARR" | wc -w )
+
+echo "The number of files are ${FILE_LITS_NUMBER} and the number of matching lines are $MATCHING_LINE"
