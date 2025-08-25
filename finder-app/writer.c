@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
   printf("Writing %s to the file %s ...\n", written_str, written_file);
 
   // Open file
-  fd = open(written_file, O_WRONLY | O_CREAT);
+  fd = open(written_file, O_WRONLY | O_CREAT, S_IRWXU | S_IRGRP | S_IWGRP | S_IROTH | S_IXOTH);
   if (fd < 0) {
     syslog(LOG_ERR, "Openning %s failed with fd=%d", written_file, fd);
     return 1;
