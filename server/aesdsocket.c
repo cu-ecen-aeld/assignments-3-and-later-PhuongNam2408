@@ -127,6 +127,9 @@ int main(int argc, char *argv[]) {
     return -1;
   } else {
     printf("Bind to socket success\n");
+
+    // Free the socket address
+    freeaddrinfo(response);
   }
 
   // Check whether the program is in deamon mode
@@ -152,7 +155,7 @@ int main(int argc, char *argv[]) {
   } else {
     printf("Listen to socket success\n");
   }
-  
+
   // Clean the AESDSOCKETDATA_PATH
   ret = unlink(AESDSOCKETDATA_PATH);
   if (ret == -1) {
@@ -251,7 +254,6 @@ int main(int argc, char *argv[]) {
           }
 
           while((ret_len = read(aesdsocketdata_fd, client_data_buf, sizeof(client_data_buf))) > 0) {
-            printf("%s", client_data_buf);
             aesdsocketdata_total_len += ret_len;
             ret_len = send(client_fd, client_data_buf, ret_len, 0); 
             printf("Sent %lu bytes to %s\n", ret_len, client_ip_v4);
