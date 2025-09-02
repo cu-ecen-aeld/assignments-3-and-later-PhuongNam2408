@@ -1,0 +1,27 @@
+#!/bin/sh
+
+# Check the argument whether it is "start" or "stop"
+
+if [ $# -ne 1 ] ; then 
+  echo "ERROR: Invalid number arguments. Need exactly 1 argument"
+  exit -1
+fi
+
+state=$1
+
+case $state in
+  start)
+    echo "Starting Aesdsocket server..."
+    # Running the aesdsocket server in the daemon mode
+    start-stop-daemon -S -n aesdsocket -a /usr/bin/aesdsocket
+    ;;
+  
+  stop)
+    echo "Stopping Aesdsocket server..."
+    # Stop the aesdsocket server by sending the 
+    start-stop-daemon -K -n aesdsocket
+    ;;
+  *)
+    echo "ERROR: Invalid argument. The input argument should be only start/stop."
+    exit 1 
+esac
